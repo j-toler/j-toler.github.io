@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Chris Turner" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Exploring changes in the relationship throughout the 21st century between a country&#39;s GNE, its percentage of the population that is malnourished, and its the unemployment rate</title>
+    <meta name="generator" content="Hugo 0.110.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/post/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project/project1/">Exploring changes in the relationship throughout the 21st century between a country&#39;s GNE, its percentage of the population that is malnourished, and its the unemployment rate</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 19, 2023 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="introduction" class="section level3">
+<h3>Introduction:</h3>
+<p>We initially wanted to obtain datasets to explore the relationships between food, food insecurity, and prices. However, due to not meeting the initial dataset constraints, we pivoted and decided to develop datasets instead, using data housed in the World Development Indicators database (<em>World Development Indicators.org)</em>. These variables were selected because the potential relationships amongst the datasets could be interesting and valuable in shaping how we examine the effect that standard country metrics could be affected by or related to how much of the country’s population is malnourished.</p>
+<p>A unique row in the GDP (GNE) dataset represents a country’s GNE mapped to a particular year between 2001-2020 with their corresponding country code. Gross national expenditure can be defined as a “country’s total expenses both, public and private, that do not include export expenses.” (<em>Dictionary.net)</em></p>
+<p>The life_expec_malnourish dataset represents a country’s life expectancy and the rate of malnourishment as a percentage of the total population mapped to a year between 2001-2019 with the country’s corresponding country code.</p>
+<p>A unique row in the unemplyed dataset represents a country’s unemployment rate in a year between 2001-2019 with the country’s corresponding country code.</p>
+<p>A unique row in our joined dataset is a country name with its corresponding country code, the year between 2000 and 2019, the associated gross national expenditure (GNE), the rate of malnourishment represented as a percentage of the population, and the life expectancy measured in years for that year. We can join these datasets by country, country code, and year. We may find a potential relationship that shows that a country’s percentage of the malnourished population is negatively correlated to a country’s GNE. An expected trend is a positive linear relationship between a country’s percentage of unemployed persons and the percent of the malnourished population. We have two categorical variables: country and country code, and 5 numeric variables: year, GNE, life expectancy, percent of the population that is malnourished, and percent of the workforce that is unemployed.</p>
+<pre class="r"><code>#Load Packages
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.2 ──
+## ✔ ggplot2 3.4.0      ✔ purrr   1.0.1 
+## ✔ tibble  3.1.8      ✔ dplyr   1.0.10
+## ✔ tidyr   1.2.1      ✔ stringr 1.5.0 
+## ✔ readr   2.1.3      ✔ forcats 0.5.2 
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>library(readr)
+library(ggplot2)
+
+#load datasets
+gne &lt;- read_csv(&quot;gdp.csv&quot;)</code></pre>
+<pre><code>## Rows: 271 Columns: 24
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (24): Country Name, Country Code, Series Name, Series Code, 2001 [YR2001...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>life_expec_malnourish &lt;- read_csv(&quot;life_expec_malnourish.csv&quot;)</code></pre>
+<pre><code>## Rows: 537 Columns: 23
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (23): Country Name, Country Code, Series Name, Series Code, 2001 [YR2001...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>perc_unemplyed &lt;- read_csv(&quot;perc_unemplyed.csv&quot;)</code></pre>
+<pre><code>## Rows: 271 Columns: 23
+## ── Column specification ────────────────────────────────────────────────────────
+## Delimiter: &quot;,&quot;
+## chr (23): Country Name, Country Code, Series Name, Series Code, 2001 [YR2001...
+## 
+## ℹ Use `spec()` to retrieve the full column specification for this data.
+## ℹ Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+</div>
+<div id="tidying-the-datasets" class="section level1">
+<h1>Tidying the Datasets:</h1>
+<p>The tidying process was relatively uncomplicated. First, we had to condense the individually broken-up year columns into a singular one using pivoting functions. After this, string replacement was needed to format the year columns to not include extraneous information in the entries and to have them simply in the year digit format. From there, we re-coded column entries of numeric columns to be numeric rather than characters. We then removed redundant columns that did not contribute to the overall dataset. Lastly, we removed entries of the format “..” as this was how the dataset decided to encode missing values.</p>
+<pre class="r"><code># GDP dataset tidying --&gt; Result: Tidy dataset w/o NA&#39;s
+gne_clean_tidy &lt;- gne %&gt;%
+
+   # remove the series code and series name column due to containing redundant information
+   select(-`Series Code`) %&gt;%
+   select(-`Series Name`) %&gt;%
+  
+   # combine multiple year cols. into one
+   # the range of years spans from 2001 to 2020
+   pivot_longer(col = c(&quot;2001 [YR2001]&quot;:&quot;2020 [YR2020]&quot;), 
+                names_to = &quot;year&quot;,
+                values_to = &quot;gne&quot;) %&gt;% 
+  
+   # removes rows with a &quot;..&quot; entry on it = how NA&#39;s were coded in the sedate
+   filter(!(gne == &quot;..&quot;)) %&gt;% 
+    
+   # format the year entries: ex: want 2000 not 2000 [YR2000]
+   mutate(year = str_replace_all(year,&quot;.\\[.......&quot;, &quot;&quot;)) %&gt;% 
+    
+   # recode GNE and year entries as numeric 
+   mutate(year = as.numeric(year), gne = as.numeric(gne)) %&gt;% 
+    
+   # recode col titles with confusing names to have clearer titles w/o spaces
+   rename(country = `Country Name` , country_code = `Country Code`)
+  
+   # get dimensions and unique IDs in the dataset 
+   dim(gne_clean_tidy)</code></pre>
+<pre><code>## [1] 3420    4</code></pre>
+<pre class="r"><code>   n_distinct(gne_clean_tidy$country)</code></pre>
+<pre><code>## [1] 184</code></pre>
+<pre class="r"><code>   n_distinct(gne_clean_tidy$gne)</code></pre>
+<pre><code>## [1] 3420</code></pre>
+<pre class="r"><code># life expectancy and nourishment data tidying --&gt; done w/ no NAs
+life_clean_tidy &lt;- life_expec_malnourish %&gt;%
+  
+  # remove series code due to containing redundant information
+  select(-`Series Code`) %&gt;% 
+  
+  # recode series name to instead be type as in type of information
+  rename(type = `Series Name`) %&gt;% 
+  
+  # do year tidying to make all year cols. info contained in one
+  pivot_longer(col = c(&quot;2001 [YR2001]&quot;:&quot;2019 [YR2019]&quot;), # 
+               names_to = &quot;year&quot;,
+              values_to = &quot;stats&quot;) %&gt;%
+  
+  # removes rows with a &quot;..&quot; entry on it = how NAs were coded in the datset
+  filter(!(stats == &#39;..&#39;)) %&gt;%
+ 
+  # used str replacement properly format the year entries as we did in the gdp dataset above
+  mutate(year = str_replace_all(year,&quot;.\\[.......&quot;, &quot;&quot;)) %&gt;% 
+    
+  # recode to make year and stats entries all numeric 
+  mutate(year= as.numeric(year), stats = as.numeric(stats)) %&gt;% 
+  
+  # recode col. titles to be more succinct and clear
+  mutate(type = recode(type,&quot;Life expectancy at birth, total (years)&quot; = &quot;life_expectancy&quot;, 
+            &quot;Prevalence of undernourishment (% of population)&quot; = &quot;malnourish_perc&quot;)) %&gt;%
+  
+  # make cols. filled with corresponding data for a countries life expectancy in years for a 
+  # particular year and a countries % of the population that is malnourished for a particular year
+  # The possible year range is from 2001 - 2019
+  pivot_wider(names_from = type,
+              values_from = stats) %&gt;%
+  
+  #rename country and country code cols. into a lowercase and w/o space format for ease of usage
+  rename(country = `Country Name` , country_code = `Country Code`) 
+  
+  # get dimensions and unique IDs in the dataset 
+  dim(life_clean_tidy)</code></pre>
+<pre><code>## [1] 4734    5</code></pre>
+<pre class="r"><code>  n_distinct(life_clean_tidy$country)</code></pre>
+<pre><code>## [1] 254</code></pre>
+<pre class="r"><code>  n_distinct(life_clean_tidy$life_expectancy)</code></pre>
+<pre><code>## [1] 4437</code></pre>
+<pre class="r"><code>  n_distinct(life_clean_tidy$malnourish_perc)</code></pre>
+<pre><code>## [1] 1221</code></pre>
+<pre class="r"><code># percentage unemplyed dataset tidying --&gt; done w/ no NA&#39;s
+  unemplyed_clean_tidy &lt;- perc_unemplyed %&gt;%
+    
+    # remove the series code and series name column due to containing redundant information
+    select(-`Series Code`) %&gt;%
+    select(-`Series Name`) %&gt;%
+    
+    # combine every individual year column into a singular one: the year range is 2001 - 2019
+    pivot_longer(col = c(&quot;2001 [YR2001]&quot;:&quot;2019 [YR2019]&quot;),
+               names_to = &quot;year&quot;,
+              values_to = &quot;unemploy_rate&quot;) %&gt;%
+    
+    # removes rows with a &quot;..&quot; entry on it = how NAs were coded in the datset
+    filter(!(unemploy_rate == &#39;..&#39;)) %&gt;%
+    
+    # used str replacement properly format the year entries as we did in the gdp dataset above
+    mutate(year = str_replace_all(year,&quot;.\\[.......&quot;, &quot;&quot;)) %&gt;%
+    
+    # encode the entries in year and unemploy_rate to be numeric 
+    mutate(year= as.numeric(year), unemploy_rate = as.numeric(unemploy_rate)) %&gt;%
+  
+    
+    #rename country and country code cols. into a lowercase and w/o space format for ease of usage
+    rename(country = `Country Name` , country_code = `Country Code`) 
+    
+    # get dimensions and unique IDs in the dataset 
+    dim(unemplyed_clean_tidy)</code></pre>
+<pre><code>## [1] 4465    4</code></pre>
+<pre class="r"><code>    n_distinct(unemplyed_clean_tidy$country)</code></pre>
+<pre><code>## [1] 235</code></pre>
+<pre class="r"><code>    n_distinct(unemplyed_clean_tidy$unemploy_rate)</code></pre>
+<pre><code>## [1] 3345</code></pre>
+</div>
+<div id="joining-the-datasets" class="section level1">
+<h1>Joining the Datasets:</h1>
+<p>We initially determined which countries were not shared between the tidy GNE dataset and the unemplyed dataset to join the datasets by using an anti_join function. Then, this dataset was stored in a variable, and its country column was extracted to reveal that 13 countries were not shared between these two datasets. Before removing the rows containing these countries, the characteristics of our three datasets are as follows: the tidy GNE dataset shares its country code and country IDs with the other datasets. Its unique ID is a country’s gross national expenditure (GNE). Its dimensions are 3,420 rows by four columns. The unique observations present in this dataset are 3,420: There are 3,420 distinct GNEs, 184 distinct countries with their corresponding country codes, and 19 different years between 2001 - 2020. </p>
+<p>The cleaned life_expec_malnourish dataset shares its country code and country IDs with the other datasets. Its unique IDs are life expectancy and the percentage of the country malnourished. Its dimensions are 3,953 rows by five columns. This dataset has 3,953 unique observations: 209 countries with their corresponding country codes, 1,220 distinct population malnourishment percentages, 3,744 distinct life expectancies, and 18 different years between 2001 and 2019. </p>
+<p>The cleaned unemplyed dataset shares its country code and country IDs with the other datasets. Its unique ID is the percentage of the workforce that is unemployed. Its dimensions after cleaning are 4,465 rows by four columns. The unique observations in this dataset are 235 countries with their corresponding country codes and 3,345 different unemployment rates across 18 different years between 2001 and 2019.</p>
+<p>We initially joined the tidy gne_clean_tidy dataset to the tidy unemplyed_clean_tidy dataset after first removing 181 rows containing countries and their corresponding information that is not present in the tidy gen_clean dataset using the following variable IDs: country, country code, and year. This joined dataset had a combined row count of 3,239. Then this dataset was joined with the tidy life_clean_tidy dataset by the identical variable IDs mentioned above. After this final round of joining and removing rows containing missing values, the resulting row count was 2,692, with 184 distinct country IDs in the final dataset. Some potential issues for dropping rows with missing values are that our variables, the distributions we will create to analyze our variables, and the dataset overall may become skewed due to dropping rows that contain both data and missing values. Additionally, removing observations from the individual datasets and, subsequently, the overall joined dataset reduces the statistical power of our investigation and impacts the type and quality of conclusions we can gather from the data if this action dramatically reduces the sample size.</p>
+<pre class="r"><code>#-----Joining---
+
+# first view what is missing between the datasets 
+missing &lt;- anti_join(gne_clean_tidy,unemplyed_clean_tidy, by = &quot;country&quot;)
+missing</code></pre>
+<pre><code>## # A tibble: 181 × 4
+##    country             country_code  year   gne
+##    &lt;chr&gt;               &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;
+##  1 Antigua and Barbuda ATG           2001  105.
+##  2 Antigua and Barbuda ATG           2002  106.
+##  3 Antigua and Barbuda ATG           2003  108.
+##  4 Antigua and Barbuda ATG           2004  106.
+##  5 Antigua and Barbuda ATG           2005  113.
+##  6 Antigua and Barbuda ATG           2006  123.
+##  7 Antigua and Barbuda ATG           2007  127.
+##  8 Antigua and Barbuda ATG           2008  124.
+##  9 Antigua and Barbuda ATG           2009  111.
+## 10 Antigua and Barbuda ATG           2010  114.
+## # … with 171 more rows</code></pre>
+<pre class="r"><code># stored the dataframe of missing information to a variable: this will be valuable for subsetting
+missing_countries &lt;- missing$country
+unique(missing_countries)</code></pre>
+<pre><code>##  [1] &quot;Antigua and Barbuda&quot;       &quot;Aruba&quot;                    
+##  [3] &quot;Bermuda&quot;                   &quot;Curacao&quot;                  
+##  [5] &quot;Dominica&quot;                  &quot;Faroe Islands&quot;            
+##  [7] &quot;Greenland&quot;                 &quot;Kiribati&quot;                 
+##  [9] &quot;Kosovo&quot;                    &quot;Marshall Islands&quot;         
+## [11] &quot;San Marino&quot;                &quot;Seychelles&quot;               
+## [13] &quot;Sint Maarten (Dutch part)&quot;</code></pre>
+<pre class="r"><code># remove the countries in the gdp datset that were not found in the missing_countrries dataframe
+nrow(gne_clean_tidy) # --&gt; initially 3420 rows</code></pre>
+<pre><code>## [1] 3420</code></pre>
+<pre class="r"><code>gne_clean_tidy &lt;- gne_clean_tidy %&gt;%
+  filter(!(country %in% missing_countries))
+nrow(gne_clean_tidy) # --&gt; after: 3239 rows </code></pre>
+<pre><code>## [1] 3239</code></pre>
+<pre class="r"><code># left join the gdp dataset to the unemployment data set using three variables:
+# country, country code and year!
+final_dataset &lt;- left_join(gne_clean_tidy,unemplyed_clean_tidy, by = c(&quot;country&quot;,
+                                                                       &quot;country_code&quot;,&quot;year&quot;))
+# get row count before joining final dataset to the already joined 2!
+nrow(final_dataset)</code></pre>
+<pre><code>## [1] 3239</code></pre>
+<pre class="r"><code>#left join the life expectancy + percent of the pop. malnourished dataset to the one we just 
+# created on line 142
+final_dataset &lt;- left_join(final_dataset,life_clean_tidy, by = c(&quot;country&quot;, &quot;country_code&quot;,&quot;year&quot;))
+
+# remove NAs that remained after completely joining all three datasets
+final_dataset &lt;- final_dataset %&gt;%
+  drop_na()
+
+# checking the final number of rows and unique entries in country to determine that they met
+# the project specifications 
+nrow(final_dataset) # final # of rows --&gt; 2692</code></pre>
+<pre><code>## [1] 2692</code></pre>
+<pre class="r"><code>unique(final_dataset$country) # 148 --&gt; unique countries </code></pre>
+<pre><code>##   [1] &quot;Albania&quot;                  &quot;Algeria&quot;                 
+##   [3] &quot;Angola&quot;                   &quot;Argentina&quot;               
+##   [5] &quot;Armenia&quot;                  &quot;Australia&quot;               
+##   [7] &quot;Austria&quot;                  &quot;Azerbaijan&quot;              
+##   [9] &quot;Bangladesh&quot;               &quot;Barbados&quot;                
+##  [11] &quot;Belarus&quot;                  &quot;Belgium&quot;                 
+##  [13] &quot;Belize&quot;                   &quot;Benin&quot;                   
+##  [15] &quot;Bolivia&quot;                  &quot;Bosnia and Herzegovina&quot;  
+##  [17] &quot;Botswana&quot;                 &quot;Brazil&quot;                  
+##  [19] &quot;Brunei Darussalam&quot;        &quot;Bulgaria&quot;                
+##  [21] &quot;Burkina Faso&quot;             &quot;Cabo Verde&quot;              
+##  [23] &quot;Cambodia&quot;                 &quot;Cameroon&quot;                
+##  [25] &quot;Canada&quot;                   &quot;Central African Republic&quot;
+##  [27] &quot;Chad&quot;                     &quot;Chile&quot;                   
+##  [29] &quot;China&quot;                    &quot;Colombia&quot;                
+##  [31] &quot;Congo, Dem. Rep.&quot;         &quot;Congo, Rep.&quot;             
+##  [33] &quot;Costa Rica&quot;               &quot;Cote d&#39;Ivoire&quot;           
+##  [35] &quot;Croatia&quot;                  &quot;Cuba&quot;                    
+##  [37] &quot;Cyprus&quot;                   &quot;Czechia&quot;                 
+##  [39] &quot;Denmark&quot;                  &quot;Djibouti&quot;                
+##  [41] &quot;Dominican Republic&quot;       &quot;Ecuador&quot;                 
+##  [43] &quot;Egypt, Arab Rep.&quot;         &quot;El Salvador&quot;             
+##  [45] &quot;Estonia&quot;                  &quot;Eswatini&quot;                
+##  [47] &quot;Ethiopia&quot;                 &quot;Fiji&quot;                    
+##  [49] &quot;Finland&quot;                  &quot;France&quot;                  
+##  [51] &quot;French Polynesia&quot;         &quot;Gabon&quot;                   
+##  [53] &quot;Gambia, The&quot;              &quot;Georgia&quot;                 
+##  [55] &quot;Germany&quot;                  &quot;Ghana&quot;                   
+##  [57] &quot;Greece&quot;                   &quot;Guatemala&quot;               
+##  [59] &quot;Guyana&quot;                   &quot;Haiti&quot;                   
+##  [61] &quot;Honduras&quot;                 &quot;Hong Kong SAR, China&quot;    
+##  [63] &quot;Hungary&quot;                  &quot;Iceland&quot;                 
+##  [65] &quot;India&quot;                    &quot;Indonesia&quot;               
+##  [67] &quot;Iran, Islamic Rep.&quot;       &quot;Iraq&quot;                    
+##  [69] &quot;Ireland&quot;                  &quot;Israel&quot;                  
+##  [71] &quot;Italy&quot;                    &quot;Jamaica&quot;                 
+##  [73] &quot;Japan&quot;                    &quot;Jordan&quot;                  
+##  [75] &quot;Kazakhstan&quot;               &quot;Kenya&quot;                   
+##  [77] &quot;Korea, Rep.&quot;              &quot;Kuwait&quot;                  
+##  [79] &quot;Kyrgyz Republic&quot;          &quot;Lao PDR&quot;                 
+##  [81] &quot;Latvia&quot;                   &quot;Lebanon&quot;                 
+##  [83] &quot;Lesotho&quot;                  &quot;Lithuania&quot;               
+##  [85] &quot;Luxembourg&quot;               &quot;Macao SAR, China&quot;        
+##  [87] &quot;Madagascar&quot;               &quot;Malaysia&quot;                
+##  [89] &quot;Mali&quot;                     &quot;Malta&quot;                   
+##  [91] &quot;Mauritania&quot;               &quot;Mauritius&quot;               
+##  [93] &quot;Mexico&quot;                   &quot;Mongolia&quot;                
+##  [95] &quot;Montenegro&quot;               &quot;Morocco&quot;                 
+##  [97] &quot;Mozambique&quot;               &quot;Myanmar&quot;                 
+##  [99] &quot;Namibia&quot;                  &quot;Nepal&quot;                   
+## [101] &quot;Netherlands&quot;              &quot;New Caledonia&quot;           
+## [103] &quot;New Zealand&quot;              &quot;Nicaragua&quot;               
+## [105] &quot;Nigeria&quot;                  &quot;North Macedonia&quot;         
+## [107] &quot;Norway&quot;                   &quot;Oman&quot;                    
+## [109] &quot;Pakistan&quot;                 &quot;Panama&quot;                  
+## [111] &quot;Papua New Guinea&quot;         &quot;Paraguay&quot;                
+## [113] &quot;Peru&quot;                     &quot;Philippines&quot;             
+## [115] &quot;Poland&quot;                   &quot;Portugal&quot;                
+## [117] &quot;Romania&quot;                  &quot;Russian Federation&quot;      
+## [119] &quot;Rwanda&quot;                   &quot;Saudi Arabia&quot;            
+## [121] &quot;Senegal&quot;                  &quot;Serbia&quot;                  
+## [123] &quot;Sierra Leone&quot;             &quot;Slovak Republic&quot;         
+## [125] &quot;Slovenia&quot;                 &quot;Solomon Islands&quot;         
+## [127] &quot;South Africa&quot;             &quot;Spain&quot;                   
+## [129] &quot;Sri Lanka&quot;                &quot;Sudan&quot;                   
+## [131] &quot;Suriname&quot;                 &quot;Sweden&quot;                  
+## [133] &quot;Switzerland&quot;              &quot;Tanzania&quot;                
+## [135] &quot;Thailand&quot;                 &quot;Timor-Leste&quot;             
+## [137] &quot;Togo&quot;                     &quot;Tunisia&quot;                 
+## [139] &quot;Turkiye&quot;                  &quot;Turkmenistan&quot;            
+## [141] &quot;Ukraine&quot;                  &quot;United Arab Emirates&quot;    
+## [143] &quot;United Kingdom&quot;           &quot;United States&quot;           
+## [145] &quot;Uruguay&quot;                  &quot;Uzbekistan&quot;              
+## [147] &quot;Vanuatu&quot;                  &quot;Venezuela, RB&quot;</code></pre>
+</div>
+<div id="wrangling" class="section level1">
+<h1>Wrangling:</h1>
+<p>The five-number summary of the country’s GNE (% of GDP) variable is as follows: the minimum GNE (% of GDP) was 0.14, the median GNE (% of GDP) was 6.32 with a first quartile value of 3.86 GNE (% of GDP) and a third quartile value of 10.13 GNE (% of GDP), and the maximum GNE (% of GDP) was 37.35.</p>
+<p>The five-number summary of the variable representing a country’s percentage of malnourished citizens as a percentage of the population ranged as follows: it had a minimum value of 2.50 (% of the population), a first quartile value of 2.50 (% of the population), a median value of 5.70 (% of the population), a third quartile value of 13.75 (% of the population), and a maximum value of 67.50 (% of the population).</p>
+<p>The five-number summary of the life expectancy variable measured in years is as follows: The minimum value of life expectancy is 40.36 years, the first quartile is 66.35 years, the median value is 73.31 years, the third quartile is 77.59 years, and the maximum value is 85.07 years.</p>
+<p>The summary statistics for a created variable that classified a country’s life expectancy as above the current worldwide life expectancy (high) or below the worldwide life expectancy (low) is as follows: 54% of countries had a life expectancy classification of high, and 46% had a life expectancy classification of low. The current worldwide life expectancy was found in a publication by Roser et al. 2013.</p>
+<p>The summary statistics for the country variable revealed that if a country retained all of its rows from 2001 - 2019, it was represented in a generated proportion table with a proportion of 0.00705. If it contained a proportion less than this, it conveys that some of the rows were removed due to containing missing values. Upon manual inspection, fourteen out of the 148 countries in the final dataset had fewer than 19 rows representing their life expectancy, percentage of malnourished individuals from the total population, GNE, and unemployment rate.</p>
+<pre class="r"><code># ouputting the fivenum summary of gdp by country
+final_dataset %&gt;%
+  
+  #arrange it in desc. order
+  arrange(desc(gne)) %&gt;%
+  
+  #group by country
+  group_by(country) %&gt;%
+  
+  #compute the five num. summary for this column: 
+  # format: first to last -&gt; (minimum, 1st. quartile, median, 3rd. quartile, maximum)
+  summarize(fivenum(gne))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;country&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 740 × 2
+## # Groups:   country [148]
+##    country `fivenum(gne)`
+##    &lt;chr&gt;            &lt;dbl&gt;
+##  1 Albania          114. 
+##  2 Albania          118. 
+##  3 Albania          121. 
+##  4 Albania          125. 
+##  5 Albania          129. 
+##  6 Algeria           73.1
+##  7 Algeria           85.5
+##  8 Algeria           91.6
+##  9 Algeria          104. 
+## 10 Algeria          114. 
+## # … with 730 more rows</code></pre>
+<pre class="r"><code># ouputing the fivenum summary of unemployment rate by country
+final_dataset %&gt;%
+  
+  # group by country
+  group_by(country) %&gt;%
+  
+  #arrange the column in descending order
+  arrange(desc(unemploy_rate)) %&gt;%
+  
+  # coumpute the fivenum summary by country 
+  summarize(fivenum(unemploy_rate))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;country&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 740 × 2
+## # Groups:   country [148]
+##    country `fivenum(unemploy_rate)`
+##    &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Albania                    11.5 
+##  2 Albania                    13.5 
+##  3 Albania                    15.6 
+##  4 Albania                    16.6 
+##  5 Albania                    18.6 
+##  6 Algeria                     9.82
+##  7 Algeria                    10.2 
+##  8 Algeria                    11.0 
+##  9 Algeria                    14.5 
+## 10 Algeria                    27.3 
+## # … with 730 more rows</code></pre>
+<pre class="r"><code>final_dataset %&gt;%
+    summarize(fivenum(unemploy_rate))</code></pre>
+<pre><code>## # A tibble: 5 × 1
+##   `fivenum(unemploy_rate)`
+##                      &lt;dbl&gt;
+## 1                    0.140
+## 2                    3.86 
+## 3                    6.33 
+## 4                   10.1  
+## 5                   37.2</code></pre>
+<pre class="r"><code># ouputting the fivenum summary of unemployment rate by country
+final_dataset %&gt;%
+  
+  # group by country
+  group_by(country) %&gt;%
+  
+  # arrange life expectancy column in descending order
+  arrange(desc(life_expectancy)) %&gt;%
+  
+  # compute the fivenum summary for life expectancy by country
+  summarize(fivenum(life_expectancy))</code></pre>
+<pre><code>## `summarise()` has grouped output by &#39;country&#39;. You can override using the
+## `.groups` argument.</code></pre>
+<pre><code>## # A tibble: 740 × 2
+## # Groups:   country [148]
+##    country `fivenum(life_expectancy)`
+##    &lt;chr&gt;                        &lt;dbl&gt;
+##  1 Albania                       74.3
+##  2 Albania                       75.3
+##  3 Albania                       76.6
+##  4 Albania                       77.9
+##  5 Albania                       78.6
+##  6 Algeria                       71.1
+##  7 Algeria                       73.3
+##  8 Algeria                       74.9
+##  9 Algeria                       76.0
+## 10 Algeria                       76.9
+## # … with 730 more rows</code></pre>
+<pre class="r"><code>final_dataset %&gt;%
+    summarize(fivenum(life_expectancy))</code></pre>
+<pre><code>## # A tibble: 5 × 1
+##   `fivenum(life_expectancy)`
+##                        &lt;dbl&gt;
+## 1                       40.4
+## 2                       66.4
+## 3                       73.3
+## 4                       77.6
+## 5                       85.1</code></pre>
+<pre class="r"><code>final_dataset %&gt;%
+  
+  # group by country
+  group_by(country) %&gt;%
+  
+  #compute the average malnourishment percentage per country 
+  summarize(avg_malnourish_perc = mean(malnourish_perc)) %&gt;%
+  
+  # add that average to the final dataset
+  mutate(avg_malnourish_perc)</code></pre>
+<pre><code>## # A tibble: 148 × 2
+##    country    avg_malnourish_perc
+##    &lt;chr&gt;                    &lt;dbl&gt;
+##  1 Albania                   6.12
+##  2 Algeria                   4.71
+##  3 Angola                   33.2 
+##  4 Argentina                 3.22
+##  5 Armenia                   8.25
+##  6 Australia                 2.5 
+##  7 Austria                   2.5 
+##  8 Azerbaijan                4.65
+##  9 Bangladesh               14.1 
+## 10 Barbados                  4.95
+## # … with 138 more rows</code></pre>
+<pre class="r"><code>final_dataset %&gt;%
+    summarize(fivenum(malnourish_perc))</code></pre>
+<pre><code>## # A tibble: 5 × 1
+##   `fivenum(malnourish_perc)`
+##                        &lt;dbl&gt;
+## 1                        2.5
+## 2                        2.5
+## 3                        5.7
+## 4                       13.8
+## 5                       67.5</code></pre>
+<pre class="r"><code># compute a classification variable for a country&#39;s life expectancy
+# https://ourworldindata.org/life-expectancy#:~:text=Today%20most%20people%20in%20the%20world%20ca    n%20expect,higher%20than%20in%20any%20country%20back%20in%201950.
+# Quote from site: --&gt;
+# &quot;The United Nations estimate a global average life expectancy of 72.6 years for 2019
+final_dataset$life_expec_class &lt;- factor(ifelse(final_dataset$life_expectancy &gt; 72.6, &#39;High&#39;, &#39;Low&#39;))
+
+# Calculate the proportions of countries&#39; life expectancy that is classified as high vs. low
+prop.table(table(final_dataset$life_expec_class))</code></pre>
+<pre><code>## 
+##      High       Low 
+## 0.5408618 0.4591382</code></pre>
+<pre class="r"><code># Calculate the proportion of rows dedicated to each country
+# Important to know how data is being contributed for each country or how data is going
+# into calculations when grouping by countries 
+prop.table(table(final_dataset$country))</code></pre>
+<pre><code>## 
+##                  Albania                  Algeria                   Angola 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                Argentina                  Armenia                Australia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Austria               Azerbaijan               Bangladesh 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Barbados                  Belarus                  Belgium 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                   Belize                    Benin                  Bolivia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##   Bosnia and Herzegovina                 Botswana                   Brazil 
+##             0.0070579495             0.0070579495             0.0070579495 
+##        Brunei Darussalam                 Bulgaria             Burkina Faso 
+##             0.0070579495             0.0070579495             0.0070579495 
+##               Cabo Verde                 Cambodia                 Cameroon 
+##             0.0048291233             0.0070579495             0.0070579495 
+##                   Canada Central African Republic                     Chad 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                    Chile                    China                 Colombia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##         Congo, Dem. Rep.              Congo, Rep.               Costa Rica 
+##             0.0070579495             0.0070579495             0.0070579495 
+##            Cote d&#39;Ivoire                  Croatia                     Cuba 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                   Cyprus                  Czechia                  Denmark 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Djibouti       Dominican Republic                  Ecuador 
+##             0.0026002972             0.0070579495             0.0070579495 
+##         Egypt, Arab Rep.              El Salvador                  Estonia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Eswatini                 Ethiopia                     Fiji 
+##             0.0070579495             0.0033432392             0.0070579495 
+##                  Finland                   France         French Polynesia 
+##             0.0070579495             0.0070579495             0.0007429421 
+##                    Gabon              Gambia, The                  Georgia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Germany                    Ghana                   Greece 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                Guatemala                   Guyana                    Haiti 
+##             0.0070579495             0.0018573551             0.0070579495 
+##                 Honduras     Hong Kong SAR, China                  Hungary 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Iceland                    India                Indonesia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##       Iran, Islamic Rep.                     Iraq                  Ireland 
+##             0.0066864785             0.0070579495             0.0070579495 
+##                   Israel                    Italy                  Jamaica 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                    Japan                   Jordan               Kazakhstan 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                    Kenya              Korea, Rep.                   Kuwait 
+##             0.0070579495             0.0070579495             0.0070579495 
+##          Kyrgyz Republic                  Lao PDR                   Latvia 
+##             0.0070579495             0.0059435364             0.0070579495 
+##                  Lebanon                  Lesotho                Lithuania 
+##             0.0070579495             0.0048291233             0.0070579495 
+##               Luxembourg         Macao SAR, China               Madagascar 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Malaysia                     Mali                    Malta 
+##             0.0070579495             0.0070579495             0.0070579495 
+##               Mauritania                Mauritius                   Mexico 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Mongolia               Montenegro                  Morocco 
+##             0.0070579495             0.0070579495             0.0070579495 
+##               Mozambique                  Myanmar                  Namibia 
+##             0.0070579495             0.0040861813             0.0070579495 
+##                    Nepal              Netherlands            New Caledonia 
+##             0.0070579495             0.0070579495             0.0063150074 
+##              New Zealand                Nicaragua                  Nigeria 
+##             0.0070579495             0.0070579495             0.0070579495 
+##          North Macedonia                   Norway                     Oman 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                 Pakistan                   Panama         Papua New Guinea 
+##             0.0070579495             0.0070579495             0.0014858841 
+##                 Paraguay                     Peru              Philippines 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                   Poland                 Portugal                  Romania 
+##             0.0070579495             0.0070579495             0.0070579495 
+##       Russian Federation                   Rwanda             Saudi Arabia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Senegal                   Serbia             Sierra Leone 
+##             0.0070579495             0.0070579495             0.0070579495 
+##          Slovak Republic                 Slovenia          Solomon Islands 
+##             0.0070579495             0.0070579495             0.0070579495 
+##             South Africa                    Spain                Sri Lanka 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                    Sudan                 Suriname                   Sweden 
+##             0.0070579495             0.0018573551             0.0070579495 
+##              Switzerland                 Tanzania                 Thailand 
+##             0.0070579495             0.0070579495             0.0070579495 
+##              Timor-Leste                     Togo                  Tunisia 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Turkiye             Turkmenistan                  Ukraine 
+##             0.0070579495             0.0044576523             0.0070579495 
+##     United Arab Emirates           United Kingdom            United States 
+##             0.0070579495             0.0070579495             0.0070579495 
+##                  Uruguay               Uzbekistan                  Vanuatu 
+##             0.0070579495             0.0070579495             0.0070579495 
+##            Venezuela, RB 
+##             0.0052005944</code></pre>
+<pre class="r"><code># get row counts of each country in the final dataset
+final_dataset%&gt;%
+  group_by(country) %&gt;%
+  count(length(country))</code></pre>
+<pre><code>## # A tibble: 148 × 3
+## # Groups:   country [148]
+##    country    `length(country)`     n
+##    &lt;chr&gt;                  &lt;int&gt; &lt;int&gt;
+##  1 Albania                 2692    19
+##  2 Algeria                 2692    19
+##  3 Angola                  2692    19
+##  4 Argentina               2692    19
+##  5 Armenia                 2692    19
+##  6 Australia               2692    19
+##  7 Austria                 2692    19
+##  8 Azerbaijan              2692    19
+##  9 Bangladesh              2692    19
+## 10 Barbados                2692    19
+## # … with 138 more rows</code></pre>
+<div id="visualizations" class="section level2">
+<h2>Visualizations:</h2>
+<p>Our first plot depicts the distribution of the unemployment rate variable measured as a percentage of the total workforce from 2001 - 2019. The unemployment percentage is represented on the x-axis, and its corresponding counts are listed on the y-axis. Upon noticing an apparent left skew in the dataset, a log transform was applied to the x-axis to correct this. While this action did not correct the skew, an apparent relationship in our distribution is that most unemployment rates aggregated around 6% to 10%, then declined. Suggesting that most countries experienced a 6 to 10% median unemployment rate out of their total workforce population from 2001 - 2019, and fewer countries experienced unemployment percentages lower than the previously mentioned range.</p>
+<pre class="r"><code>final_dataset %&gt;%
+  #create distribution of unemployment rate 
+  ggplot(aes(x = unemploy_rate, fill = ..x.., color = unemploy_rate))+
+  # outline bins in white
+  geom_histogram(color = &quot;white&quot;) + 
+  # color using gradient 
+  scale_fill_gradient(low = &quot;light green&quot;, high = &quot;purple&quot;) +
+  scale_x_log10() + # scale x-axis by log transform 
+  #add labs 
+  labs(title = &quot;Distribution of Unemployment Rate&quot;,
+       subtitle = &quot; Units: (%) of the Total Work Force&quot;,
+       x = &quot;Log(Unemployment Rate (% of Total Workforce)&quot;,
+       y = &quot;Frequency&quot;,
+       fill = &quot;Unemployment (%)
+       Low - High&quot;) +
+  # add color and stylings
+  theme_dark() +
+  theme(plot.background=element_rect(fill=&quot;#f1edf2&quot;),
+        legend.background = element_rect(fill=&quot;white&quot;, size=.5, linetype=&quot;solid&quot;),
+        axis.text = element_text(colour = &quot;#507d2a&quot;, face= &quot;bold&quot;),
+        axis.title = element_text(colour = &quot;#507d2a&quot;, face= &quot;bold&quot;),
+        legend.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        legend.text = element_text(colour = &quot;#507d2a&quot;),
+        plot.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        plot.subtitle = element_text(colour = &quot;#507d2a&quot;))</code></pre>
+<pre><code>## Warning: The `size` argument of `element_rect()` is deprecated as of ggplot2 3.4.0.
+## ℹ Please use the `linewidth` argument instead.</code></pre>
+<pre><code>## Warning: The dot-dot notation (`..x..`) was deprecated in ggplot2 3.4.0.
+## ℹ Please use `after_stat(x)` instead.</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p>Our second plot depicts life expectancy distribution measured in years across countries over the 2001 - 2019 period. This plot contained a pronounced left skew; to correct this, a square root transformation was applied to the x-axis. Though this did not correct for the skew, a clear relationship is that throughout the 2001-2019 time period, most countries experienced a median life expectancy that fell above 70 years. A decline occurred after the 75-year point, but promisingly, there were fewer and fewer countries that experienced life expectancies below 70 years. On the x-axis, the square root transformed values for life expectancies are represented in sqrt(years) for a country, and the corresponding counts are depicted on the y-axis.</p>
+<pre class="r"><code>final_dataset %&gt;%
+  # generate distribution of life expectancy
+  ggplot(aes(life_expectancy, fill = ..x.., color = life_expectancy)) +
+  # outline bins using white
+  geom_histogram(color = &quot;white&quot;) + 
+  # color using gradient 
+  scale_fill_gradient(low = &quot;lightgreen&quot;, high = &quot;pink&quot;) +
+  scale_x_sqrt() + # scale x-axis using sqrt transform 
+  labs(title = &quot;Distribution of Life Expectancy&quot;,
+       subtitle = &quot; (% of the Population)&quot;,
+       x = &quot;Sqrt(Life Expectancy (%) of Total Population)&quot;,
+       y = &quot;Frequency&quot;,
+       fill = &quot;Life Expectancy Sqrt(Low - High)&quot;) +
+  # add color and stylings 
+  theme(plot.background=element_rect(fill=&quot;#ffe4e1&quot;),
+        legend.background = element_rect(colour=&quot;#507d2a&quot;,fill=&quot;white&quot;, 
+                                         size=.5, linetype=&quot;solid&quot;),
+        axis.text = element_text(colour = &quot;#507d2a&quot;, face= &quot;bold&quot;),
+        axis.title = element_text(colour = &quot;#507d2a&quot;, face= &quot;bold&quot;),
+        legend.text = element_text(colour = &quot;#507d2a&quot;),
+        legend.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        plot.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        plot.subtitle = element_text(colour = &quot;#507d2a&quot;))</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>The third plot depicts the relationship between a country’s malnourishment percentage, represented as a portion of the total population, and its unemployment rate as a percentage of the total workforce. On the x-axis, we have the log-transformed variable unemployment rate as a log(percentage of the total workforce). On the y-axis, we have the log-transformed malnourishment percentage variable, represented as a log(percentage of the total population). These successive log transformations were executed to help clarify the relationship between the two variables. With the aid of a geom_smooth function, we can see a non-linear trend between the two variables mentioned earlier. Initially, their relationship is approximately stagnant when the unemployment rate is below 1 %. As the unemployment percentage values progress positively, there is a  fall in the malnourishment rate, then a rise back to the initial stagnant value followed by a general decline. While difficult, it can be gathered that a country’s malnourishment percentage correlates positively with its unemployment rate between 10 - 21%. Conversely, the malnourishment percentage and the unemployment rate experienced a negative correlation when the unemployment rate rose between 1- 8% and 22% - 32%.</p>
+<pre class="r"><code>final_dataset %&gt;%
+  # map unemployment rate to malnourishment percentage 
+  ggplot(aes(unemploy_rate,malnourish_perc, color = ..x..)) +
+  scale_x_log10() + # scale x-axis using log transform
+  scale_y_log10() + # scale y-axis using log transform
+  geom_point() +
+  geom_smooth(colour = &quot;purple&quot;) + # color geom_smooth line
+  # add labs 
+  labs(title = &quot;Malnourishment Percentage vs. Unemployment Rate&quot;,
+       subtitle = &quot; (% of the Population vs. % Total Workforce)&quot;,
+       x = &quot;Log(Unemployment Rate (%) Total Working Population)&quot;,
+       y = &quot; Log(Malnourishment Rate (% of Total Population))&quot;,
+       color = &quot;Life Expectancy &amp;
+Malnourishment Rate
+  Log(Low - High)&quot;) +
+  # add gradient color and stylings
+    scale_color_gradient(low = &quot;white&quot;, high = &quot;orange&quot;) +
+    theme_dark() +
+    theme(plot.background=element_rect(fill=&quot;#ffffd8&quot;),
+        legend.background = element_rect(colour=&quot;#ffb327&quot;,fill=&quot;white&quot;, 
+                                         size=.5, linetype=&quot;solid&quot;),
+        axis.text = element_text(colour = &quot;#b37400&quot;, face= &quot;bold&quot;),
+        axis.title = element_text(colour = &quot;#b37400&quot;, face= &quot;bold&quot;),
+        legend.text = element_text(colour = &quot;#b37400&quot;),
+        legend.title = element_text(colour = &quot;#b37400&quot;, face = &quot;bold&quot;, size = 9),
+        plot.title = element_text(colour = &quot;#b37400&quot;, face = &quot;bold&quot;),
+        plot.subtitle = element_text(colour = &quot;#b37400&quot;))</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>The fourth plot depicts a relationship between life expectancy measured in years and a country’s Gross National Expenditure (GNE). On the x-axis, we have a log-transformed life expectancy variable represented in log(years). On the y-axis, the variable GNE is represented in units corresponding to a country’s percentage of its GDP. The log transform was applied to the x-axis to clarify the previous relationship between the two variables. Using the geom_smooth function, it is clear there is nonlinearity in the relationship between a country’s GNE and its life expectancy. The approximately linear relationship reveals a negative correlation between the two. That is to say, as a country’s life expectancy tended to increase, the country’s GNE tended to decrease.<br />
+</p>
+<pre class="r"><code>final_dataset %&gt;%
+  # map GNE and life expectancy to one another 
+  ggplot(aes(gne, life_expectancy, color = ..x..)) +
+  geom_point( size = 2) +
+  scale_x_log10() + # scale x-axis using log trasnform 
+  geom_smooth(color = &quot;green&quot;) + #color geom_smooth line
+  # add gradient color
+  scale_color_gradient(low = &quot;light green&quot;, high = &quot;purple&quot;) +
+  # add labs
+   labs(title = &quot;Life Expectancy vs. Gross National Expenditure (GNE)&quot;,
+       subtitle = &quot;(% of the Population vs. % of Total GDP)&quot;,
+       x = &quot;Log(Life Expectancy (%) of Population)&quot;,
+       y = &quot;Gross National Expenditure (% of Total GDP)&quot;,
+       color = &quot;GNE&quot;) +
+  # add color and stylings 
+  theme_dark() +
+  theme(plot.background=element_rect(fill=&quot;#f1edf2&quot;),
+        legend.background = element_rect(colour=&quot;green&quot;,fill=&quot;white&quot;, 
+                                         size=.5, linetype=&quot;solid&quot;),
+        axis.text = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        axis.title = element_text(colour = &quot;#507d2a&quot;, face= &quot;bold&quot;),
+        legend.text = element_text(colour = &quot;#507d2a&quot;),
+        legend.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;, size = 9),
+        plot.title = element_text(colour = &quot;#507d2a&quot;, face = &quot;bold&quot;),
+        plot.subtitle = element_text(colour = &quot;#507d2a&quot;))</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>The fifth plot depicts the relationship between a country’s life expectancy measured in years and the malnourishment rate measured as a percentage of the total population from 2001-2019. Again, a log transform was applied to the x-axis to make the relationship between the two variables mentioned previously more apparent. On the y-axis, the malnourishment rate variable represents a percentage of the total population. On the x-axis, we have the log-transformed variable life expectancy represented in log(years). The following relationship can be seen: The malnourishment rate negatively correlates to the year variable and the life expectancy log(years). This means that the malnourishment rate tended to decrease as the years and life expectancy increased.</p>
+<pre class="r"><code>final_dataset %&gt;%
+  # map the variables life expectancy, malnourish perc and year
+  ggplot(aes(life_expectancy,malnourish_perc, color = year)) +
+  geom_point(stat = &quot;identity&quot;) +
+  scale_x_log10() + # scale x-axis using log transform
+  geom_smooth(colour = &quot;light blue&quot;) + # set geom_smooth color
+  # include labs
+  labs(title = &quot;Life Expectancy vs. Malnourishment Percentage &quot;,
+       subtitle = &quot; (Years vs. % of the Population)&quot;,
+       x = &quot;Log(Life Expectancy (Years))&quot;,
+       y = &quot;Malnourishment Rate (% of Total Population)&quot;,
+       color = &quot;Year&quot;) +
+  # add gradient color and stylings
+    scale_color_gradient(low = &quot;white&quot;, high = &quot;orange&quot;) +
+    theme_dark() +
+    theme(plot.background=element_rect(fill=&quot;#ffffd8&quot;),
+        legend.background = element_rect(colour=&quot;#ffb327&quot;,fill=&quot;white&quot;, 
+                                         size=.5, linetype=&quot;solid&quot;),
+        axis.text = element_text(colour = &quot;#b37400&quot;, face= &quot;bold&quot;),
+        axis.title = element_text(colour = &quot;#b37400&quot;, face= &quot;bold&quot;),
+        legend.text = element_text(colour = &quot;#b37400&quot;),
+        legend.title = element_text(colour = &quot;#b37400&quot;, face = &quot;bold&quot;, size = 9),
+        plot.title = element_text(colour = &quot;#b37400&quot;, face = &quot;bold&quot;),
+        plot.subtitle = element_text(colour = &quot;#b37400&quot;))</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula = &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>  facet_wrap(~year)</code></pre>
+<pre><code>## &lt;ggproto object: Class FacetWrap, Facet, gg&gt;
+##     compute_layout: function
+##     draw_back: function
+##     draw_front: function
+##     draw_labels: function
+##     draw_panels: function
+##     finish_data: function
+##     init_scales: function
+##     map_data: function
+##     params: list
+##     setup_data: function
+##     setup_params: function
+##     shrink: TRUE
+##     train_scales: function
+##     vars: function
+##     super:  &lt;ggproto object: Class FacetWrap, Facet, gg&gt;</code></pre>
+<p>The sixth paragraph depicts the relationship between the unemployment rate (% of the total workforce) and the malnourishment percentage (% of the total population ) in 2019. Again, the x and y axes have been scaled to the following sequences: 0 - 50 and 40 - 100, respectively, with breaks every five values. On the x-axis, we have the malnourishment percentage, and on the y-axis is the life expectancy reported in years. From the visualization, it is clear that in the year 2019, the two variables mentioned above are negatively correlated. Suggesting that in 2019 as a country’s malnourishment percentage increased, its life expectancy tended to decrease.</p>
+<pre class="r"><code>final_dataset %&gt;%
+  # only include 2019 year data
+  filter(year == 2019) %&gt;%
+  # map malnourishment_perc vs. life_expectancy and year = 2019
+  ggplot(aes(x = malnourish_perc, y = life_expectancy, color = unemploy_rate)) +
+  # adjust point size
+  geom_point(size = 5) +
+  # include labs
+  labs(title = &quot;Relationship between life expectancy, 
+       unemployment rate, and malnourishment percentage in 2019&quot;,
+       color = &quot;Unemployment Rate vs. 
+       Percentage of Total Labor Force&quot;,
+       x = &quot;Malnourishment Percentage 
+       (% of the Total Population)&quot;,
+       y = &quot;Life Expectancy (Years)&quot;) +
+  # scale x &amp; y -axis
+  scale_x_continuous(breaks = seq(0,50,5)) +
+  scale_y_continuous(breaks = seq(40,100,5))</code></pre>
+<p><img src="/project/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+<div id="acknowledgements" class="section level2">
+<h2>Acknowledgements:</h2>
+<div id="team-contributions" class="section level3">
+<h3>Team Contributions:</h3>
+<ul>
+<li><p>Jordan Toler: Full Effort</p></li>
+<li><p>Tim Giang: Full Effort</p></li>
+<li><p>Elizabeth Lam: Full Effort</p></li>
+</ul>
+</div>
+</div>
+<div id="citations" class="section level2">
+<h2>Citations:</h2>
+<p>Style: MLA9</p>
+<blockquote>
+<p>“Dictionary.net.” <em>Dictionary.net | Find Definitions and Meanings of Words</em>, <a href="https://www.dictionary.net/." class="uri">https://www.dictionary.net/.</a></p>
+</blockquote>
+<blockquote>
+<p>Roser, Max, et al. “Life Expectancy.” <em>Our World in Data</em>, 23 May 2013, <a href="https://ourworldindata.org/life-expectancy." class="uri">https://ourworldindata.org/life-expectancy.</a></p>
+</blockquote>
+<blockquote>
+<p>“World Development Indicators.” <em>DataBank</em>, 16 Sept. 2022, <a href="https://databank.worldbank.org/source/world-development-indicators." class="uri">https://databank.worldbank.org/source/world-development-indicators.</a></p>
+</blockquote>
+<p>&gt;&gt; The World Development Indicators database was used to manually create the customized datasets that made our project possible.</p>
+</div>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>

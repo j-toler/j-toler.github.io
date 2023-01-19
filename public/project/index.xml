@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Chris Turner</title>
+    <link>/project/</link>
+    <description>Recent content in Projects on Chris Turner</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-US</language>
+    <lastBuildDate>Thu, 19 Jan 2023 00:00:00 +0000</lastBuildDate><atom:link href="/project/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Exploring changes in the relationship throughout the 21st century between a country&#39;s GNE, its percentage of the population that is malnourished, and its the unemployment rate</title>
+      <link>/project/project1/</link>
+      <pubDate>Thu, 19 Jan 2023 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project1/</guid>
+      <description>Introduction:We initially wanted to obtain datasets to explore the relationships between food, food insecurity, and prices. However, due to not meeting the initial dataset constraints, we pivoted and decided to develop datasets instead, using data housed in the World Development Indicators database (World Development Indicators.org). These variables were selected because the potential relationships amongst the datasets could be interesting and valuable in shaping how we examine the effect that standard country metrics could be affected by or related to how much of the country’s population is malnourished.</description>
+    </item>
+    
+    <item>
+      <title>Exploring Changes Throughout the 21st Century Between GNE, Malnourished Population Percentage, and Unemployment Rate</title>
+      <link>/project/project2/</link>
+      <pubDate>Thu, 19 Jan 2023 00:00:00 +0000</pubDate>
+      
+      <guid>/project/project2/</guid>
+      <description>IntroductionWe initially wanted to obtain datasets to explore the relationships between food, food insecurity, and prices. However, due to not meeting the initial dataset constraints, we pivoted and decided to develop datasets instead, using data housed in the World Development Indicators database (World Development Indicators.org). These variables were selected because the potential relationships amongst the datasets could be interesting and valuable in shaping how we examine the effect that standard country metrics could be affected by or related to how much of the country’s population is malnourished.</description>
+    </item>
+    
+  </channel>
+</rss>

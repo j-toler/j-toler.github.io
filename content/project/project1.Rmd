@@ -1,0 +1,512 @@
+---
+title: "Exploring changes in the relationship throughout the 21st century between a country's GNE, its percentage of the population that is malnourished, and its the unemployment rate"
+author: "Jordan Toler, Tim Giang, Elizabeth Lam"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Introduction:
+
+We initially wanted to obtain datasets to explore the relationships between food, food insecurity, and prices. However, due to not meeting the initial dataset constraints, we pivoted and decided to develop datasets instead, using data housed in the World Development Indicators database (*World Development Indicators.org)*. These variables were selected because the potential relationships amongst the datasets could be interesting and valuable in shaping how we examine the effect that standard country metrics could be affected by or related to how much of the country's population is malnourished.
+
+A unique row in the GDP (GNE) dataset represents a country's GNE mapped to a particular year between 2001-2020 with their corresponding country code. Gross national expenditure can be defined as a "country's total expenses both, public and private, that do not include export expenses." (*Dictionary.net)*
+
+The life_expec_malnourish dataset represents a country's life expectancy and the rate of malnourishment as a percentage of the total population mapped to a year between 2001-2019 with the country's corresponding country code.
+
+A unique row in the unemplyed dataset represents a country's unemployment rate in a year between 2001-2019 with the country's corresponding country code.
+
+A unique row in our joined dataset is a country name with its corresponding country code, the year between 2000 and 2019, the associated gross national expenditure (GNE), the rate of malnourishment represented as a percentage of the population, and the life expectancy measured in years for that year. We can join these datasets by country, country code, and year. We may find a potential relationship that shows that a country's percentage of the malnourished population is negatively correlated to a country's GNE. An expected trend is a positive linear relationship between a country's percentage of unemployed persons and the percent of the malnourished population. We have two categorical variables: country and country code, and 5 numeric variables: year, GNE, life expectancy, percent of the population that is malnourished, and percent of the workforce that is unemployed.
+
+```{r}
+#Load Packages
+library(tidyverse)
+library(readr)
+library(ggplot2)
+
+#load datasets
+gne <- read_csv("gdp.csv")
+life_expec_malnourish <- read_csv("life_expec_malnourish.csv")
+perc_unemplyed <- read_csv("perc_unemplyed.csv")
+
+```
+
+# Tidying the Datasets:
+
+The tidying process was relatively uncomplicated. First, we had to condense the individually broken-up year columns into a singular one using pivoting functions. After this, string replacement was needed to format the year columns to not include extraneous information in the entries and to have them simply in the year digit format. From there, we re-coded column entries of numeric columns to be numeric rather than characters. We then removed redundant columns that did not contribute to the overall dataset. Lastly, we removed entries of the format ".." as this was how the dataset decided to encode missing values.
+
+```{r}
+
+# GDP dataset tidying --> Result: Tidy dataset w/o NA's
+gne_clean_tidy <- gne %>%
+
+   # remove the series code and series name column due to containing redundant information
+   select(-`Series Code`) %>%
+   select(-`Series Name`) %>%
+  
+   # combine multiple year cols. into one
+   # the range of years spans from 2001 to 2020
+   pivot_longer(col = c("2001 [YR2001]":"2020 [YR2020]"), 
+                names_to = "year",
+                values_to = "gne") %>% 
+  
+   # removes rows with a ".." entry on it = how NA's were coded in the sedate
+   filter(!(gne == "..")) %>% 
+    
+   # format the year entries: ex: want 2000 not 2000 [YR2000]
+   mutate(year = str_replace_all(year,".\\[.......", "")) %>% 
+    
+   # recode GNE and year entries as numeric 
+   mutate(year = as.numeric(year), gne = as.numeric(gne)) %>% 
+    
+   # recode col titles with confusing names to have clearer titles w/o spaces
+   rename(country = `Country Name` , country_code = `Country Code`)
+  
+   # get dimensions and unique IDs in the dataset 
+   dim(gne_clean_tidy)
+   n_distinct(gne_clean_tidy$country)
+   n_distinct(gne_clean_tidy$gne)
+
+```
+
+```{r}
+
+# life expectancy and nourishment data tidying --> done w/ no NAs
+life_clean_tidy <- life_expec_malnourish %>%
+  
+  # remove series code due to containing redundant information
+  select(-`Series Code`) %>% 
+  
+  # recode series name to instead be type as in type of information
+  rename(type = `Series Name`) %>% 
+  
+  # do year tidying to make all year cols. info contained in one
+  pivot_longer(col = c("2001 [YR2001]":"2019 [YR2019]"), # 
+               names_to = "year",
+              values_to = "stats") %>%
+  
+  # removes rows with a ".." entry on it = how NAs were coded in the datset
+  filter(!(stats == '..')) %>%
+ 
+  # used str replacement properly format the year entries as we did in the gdp dataset above
+  mutate(year = str_replace_all(year,".\\[.......", "")) %>% 
+    
+  # recode to make year and stats entries all numeric 
+  mutate(year= as.numeric(year), stats = as.numeric(stats)) %>% 
+  
+  # recode col. titles to be more succinct and clear
+  mutate(type = recode(type,"Life expectancy at birth, total (years)" = "life_expectancy", 
+            "Prevalence of undernourishment (% of population)" = "malnourish_perc")) %>%
+  
+  # make cols. filled with corresponding data for a countries life expectancy in years for a 
+  # particular year and a countries % of the population that is malnourished for a particular year
+  # The possible year range is from 2001 - 2019
+  pivot_wider(names_from = type,
+              values_from = stats) %>%
+  
+  #rename country and country code cols. into a lowercase and w/o space format for ease of usage
+  rename(country = `Country Name` , country_code = `Country Code`) 
+  
+  # get dimensions and unique IDs in the dataset 
+  dim(life_clean_tidy)
+  n_distinct(life_clean_tidy$country)
+  n_distinct(life_clean_tidy$life_expectancy)
+  n_distinct(life_clean_tidy$malnourish_perc)
+
+```
+
+```{r}
+# percentage unemplyed dataset tidying --> done w/ no NA's
+  unemplyed_clean_tidy <- perc_unemplyed %>%
+    
+    # remove the series code and series name column due to containing redundant information
+    select(-`Series Code`) %>%
+    select(-`Series Name`) %>%
+    
+    # combine every individual year column into a singular one: the year range is 2001 - 2019
+    pivot_longer(col = c("2001 [YR2001]":"2019 [YR2019]"),
+               names_to = "year",
+              values_to = "unemploy_rate") %>%
+    
+    # removes rows with a ".." entry on it = how NAs were coded in the datset
+    filter(!(unemploy_rate == '..')) %>%
+    
+    # used str replacement properly format the year entries as we did in the gdp dataset above
+    mutate(year = str_replace_all(year,".\\[.......", "")) %>%
+    
+    # encode the entries in year and unemploy_rate to be numeric 
+    mutate(year= as.numeric(year), unemploy_rate = as.numeric(unemploy_rate)) %>%
+  
+    
+    #rename country and country code cols. into a lowercase and w/o space format for ease of usage
+    rename(country = `Country Name` , country_code = `Country Code`) 
+    
+    # get dimensions and unique IDs in the dataset 
+    dim(unemplyed_clean_tidy)
+    n_distinct(unemplyed_clean_tidy$country)
+    n_distinct(unemplyed_clean_tidy$unemploy_rate)
+
+  
+```
+
+# Joining the Datasets:
+
+We initially determined which countries were not shared between the tidy GNE dataset and the unemplyed dataset to join the datasets by using an anti_join function. Then, this dataset was stored in a variable, and its country column was extracted to reveal that 13 countries were not shared between these two datasets. Before removing the rows containing these countries, the characteristics of our three datasets are as follows: the tidy GNE dataset shares its country code and country IDs with the other datasets. Its unique ID is a country's gross national expenditure (GNE). Its dimensions are 3,420 rows by four columns. The unique observations present in this dataset are 3,420: There are 3,420 distinct GNEs, 184 distinct countries with their corresponding country codes, and 19 different years between 2001 - 2020. 
+
+The cleaned life_expec_malnourish dataset shares its country code and country IDs with the other datasets. Its unique IDs are life expectancy and the percentage of the country malnourished. Its dimensions are 3,953 rows by five columns. This dataset has 3,953 unique observations: 209 countries with their corresponding country codes, 1,220 distinct population malnourishment percentages, 3,744 distinct life expectancies, and 18 different years between 2001 and 2019. 
+
+The cleaned unemplyed dataset shares its country code and country IDs with the other datasets. Its unique ID is the percentage of the workforce that is unemployed. Its dimensions after cleaning are 4,465 rows by four columns. The unique observations in this dataset are 235 countries with their corresponding country codes and 3,345 different unemployment rates across 18 different years between 2001 and 2019.
+
+We initially joined the tidy gne_clean_tidy dataset to the tidy unemplyed_clean_tidy dataset after first removing 181 rows containing countries and their corresponding information that is not present in the tidy gen_clean dataset using the following variable IDs: country, country code, and year. This joined dataset had a combined row count of 3,239. Then this dataset was joined with the tidy life_clean_tidy dataset by the identical variable IDs mentioned above. After this final round of joining and removing rows containing missing values, the resulting row count was 2,692, with 184 distinct country IDs in the final dataset. Some potential issues for dropping rows with missing values are that our variables, the distributions we will create to analyze our variables, and the dataset overall may become skewed due to dropping rows that contain both data and missing values. Additionally, removing observations from the individual datasets and, subsequently, the overall joined dataset reduces the statistical power of our investigation and impacts the type and quality of conclusions we can gather from the data if this action dramatically reduces the sample size.
+
+```{r}
+#-----Joining---
+
+# first view what is missing between the datasets 
+missing <- anti_join(gne_clean_tidy,unemplyed_clean_tidy, by = "country")
+missing
+
+# stored the dataframe of missing information to a variable: this will be valuable for subsetting
+missing_countries <- missing$country
+unique(missing_countries)
+
+
+# remove the countries in the gdp datset that were not found in the missing_countrries dataframe
+nrow(gne_clean_tidy) # --> initially 3420 rows
+gne_clean_tidy <- gne_clean_tidy %>%
+  filter(!(country %in% missing_countries))
+nrow(gne_clean_tidy) # --> after: 3239 rows 
+
+
+# left join the gdp dataset to the unemployment data set using three variables:
+# country, country code and year!
+final_dataset <- left_join(gne_clean_tidy,unemplyed_clean_tidy, by = c("country",
+                                                                       "country_code","year"))
+# get row count before joining final dataset to the already joined 2!
+nrow(final_dataset)
+
+#left join the life expectancy + percent of the pop. malnourished dataset to the one we just 
+# created on line 142
+final_dataset <- left_join(final_dataset,life_clean_tidy, by = c("country", "country_code","year"))
+
+# remove NAs that remained after completely joining all three datasets
+final_dataset <- final_dataset %>%
+  drop_na()
+
+# checking the final number of rows and unique entries in country to determine that they met
+# the project specifications 
+nrow(final_dataset) # final # of rows --> 2692
+unique(final_dataset$country) # 148 --> unique countries 
+
+```
+
+# Wrangling:
+
+The five-number summary of the country's GNE (% of GDP) variable is as follows: the minimum GNE (% of GDP) was 0.14, the median GNE (% of GDP) was 6.32 with a first quartile value of 3.86 GNE (% of GDP) and a third quartile value of 10.13 GNE (% of GDP), and the maximum GNE (% of GDP) was 37.35.
+
+The five-number summary of the variable representing a country's percentage of malnourished citizens as a percentage of the population ranged as follows: it had a minimum value of 2.50 (% of the population), a first quartile value of 2.50 (% of the population), a median value of 5.70 (% of the population), a third quartile value of 13.75 (% of the population), and a maximum value of 67.50 (% of the population).
+
+The five-number summary of the life expectancy variable measured in years is as follows: The minimum value of life expectancy is 40.36 years, the first quartile is 66.35 years, the median value is 73.31 years, the third quartile is 77.59 years, and the maximum value is 85.07 years.
+
+The summary statistics for a created variable that classified a country's life expectancy as above the current worldwide life expectancy (high) or below the worldwide life expectancy (low) is as follows: 54% of countries had a life expectancy classification of high, and 46% had a life expectancy classification of low. The current worldwide life expectancy was found in a publication by Roser et al. 2013.
+
+The summary statistics for the country variable revealed that if a country retained all of its rows from 2001 - 2019, it was represented in a generated proportion table with a proportion of 0.00705. If it contained a proportion less than this, it conveys that some of the rows were removed due to containing missing values. Upon manual inspection, fourteen out of the 148 countries in the final dataset had fewer than 19 rows representing their life expectancy, percentage of malnourished individuals from the total population, GNE, and unemployment rate.
+
+```{r}
+
+# ouputting the fivenum summary of gdp by country
+final_dataset %>%
+  
+  #arrange it in desc. order
+  arrange(desc(gne)) %>%
+  
+  #group by country
+  group_by(country) %>%
+  
+  #compute the five num. summary for this column: 
+  # format: first to last -> (minimum, 1st. quartile, median, 3rd. quartile, maximum)
+  summarize(fivenum(gne))
+
+
+
+# ouputing the fivenum summary of unemployment rate by country
+final_dataset %>%
+  
+  # group by country
+  group_by(country) %>%
+  
+  #arrange the column in descending order
+  arrange(desc(unemploy_rate)) %>%
+  
+  # coumpute the fivenum summary by country 
+  summarize(fivenum(unemploy_rate))
+
+final_dataset %>%
+    summarize(fivenum(unemploy_rate))
+
+
+
+# ouputting the fivenum summary of unemployment rate by country
+final_dataset %>%
+  
+  # group by country
+  group_by(country) %>%
+  
+  # arrange life expectancy column in descending order
+  arrange(desc(life_expectancy)) %>%
+  
+  # compute the fivenum summary for life expectancy by country
+  summarize(fivenum(life_expectancy))
+
+final_dataset %>%
+    summarize(fivenum(life_expectancy))
+
+final_dataset %>%
+  
+  # group by country
+  group_by(country) %>%
+  
+  #compute the average malnourishment percentage per country 
+  summarize(avg_malnourish_perc = mean(malnourish_perc)) %>%
+  
+  # add that average to the final dataset
+  mutate(avg_malnourish_perc)
+
+final_dataset %>%
+    summarize(fivenum(malnourish_perc))
+
+
+# compute a classification variable for a country's life expectancy
+# https://ourworldindata.org/life-expectancy#:~:text=Today%20most%20people%20in%20the%20world%20ca    n%20expect,higher%20than%20in%20any%20country%20back%20in%201950.
+# Quote from site: -->
+# "The United Nations estimate a global average life expectancy of 72.6 years for 2019
+final_dataset$life_expec_class <- factor(ifelse(final_dataset$life_expectancy > 72.6, 'High', 'Low'))
+
+# Calculate the proportions of countries' life expectancy that is classified as high vs. low
+prop.table(table(final_dataset$life_expec_class))
+
+
+
+# Calculate the proportion of rows dedicated to each country
+# Important to know how data is being contributed for each country or how data is going
+# into calculations when grouping by countries 
+prop.table(table(final_dataset$country))
+
+# get row counts of each country in the final dataset
+final_dataset%>%
+  group_by(country) %>%
+  count(length(country))
+```
+
+## Visualizations:
+
+Our first plot depicts the distribution of the unemployment rate variable measured as a percentage of the total workforce from 2001 - 2019. The unemployment percentage is represented on the x-axis, and its corresponding counts are listed on the y-axis. Upon noticing an apparent left skew in the dataset, a log transform was applied to the x-axis to correct this. While this action did not correct the skew, an apparent relationship in our distribution is that most unemployment rates aggregated around 6% to 10%, then declined. Suggesting that most countries experienced a 6 to 10% median unemployment rate out of their total workforce population from 2001 - 2019, and fewer countries experienced unemployment percentages lower than the previously mentioned range.
+
+```{r}
+
+final_dataset %>%
+  #create distribution of unemployment rate 
+  ggplot(aes(x = unemploy_rate, fill = ..x.., color = unemploy_rate))+
+  # outline bins in white
+  geom_histogram(color = "white") + 
+  # color using gradient 
+  scale_fill_gradient(low = "light green", high = "purple") +
+  scale_x_log10() + # scale x-axis by log transform 
+  #add labs 
+  labs(title = "Distribution of Unemployment Rate",
+       subtitle = " Units: (%) of the Total Work Force",
+       x = "Log(Unemployment Rate (% of Total Workforce)",
+       y = "Frequency",
+       fill = "Unemployment (%)
+       Low - High") +
+  # add color and stylings
+  theme_dark() +
+  theme(plot.background=element_rect(fill="#f1edf2"),
+        legend.background = element_rect(fill="white", size=.5, linetype="solid"),
+        axis.text = element_text(colour = "#507d2a", face= "bold"),
+        axis.title = element_text(colour = "#507d2a", face= "bold"),
+        legend.title = element_text(colour = "#507d2a", face = "bold"),
+        legend.text = element_text(colour = "#507d2a"),
+        plot.title = element_text(colour = "#507d2a", face = "bold"),
+        plot.subtitle = element_text(colour = "#507d2a"))
+
+
+```
+
+Our second plot depicts life expectancy distribution measured in years across countries over the 2001 - 2019 period. This plot contained a pronounced left skew; to correct this, a square root transformation was applied to the x-axis. Though this did not correct for the skew, a clear relationship is that throughout the 2001-2019 time period, most countries experienced a median life expectancy that fell above 70 years. A decline occurred after the 75-year point, but promisingly, there were fewer and fewer countries that experienced life expectancies below 70 years. On the x-axis, the square root transformed values for life expectancies are represented in sqrt(years) for a country, and the corresponding counts are depicted on the y-axis.
+
+```{r}
+
+final_dataset %>%
+  # generate distribution of life expectancy
+  ggplot(aes(life_expectancy, fill = ..x.., color = life_expectancy)) +
+  # outline bins using white
+  geom_histogram(color = "white") + 
+  # color using gradient 
+  scale_fill_gradient(low = "lightgreen", high = "pink") +
+  scale_x_sqrt() + # scale x-axis using sqrt transform 
+  labs(title = "Distribution of Life Expectancy",
+       subtitle = " (% of the Population)",
+       x = "Sqrt(Life Expectancy (%) of Total Population)",
+       y = "Frequency",
+       fill = "Life Expectancy Sqrt(Low - High)") +
+  # add color and stylings 
+  theme(plot.background=element_rect(fill="#ffe4e1"),
+        legend.background = element_rect(colour="#507d2a",fill="white", 
+                                         size=.5, linetype="solid"),
+        axis.text = element_text(colour = "#507d2a", face= "bold"),
+        axis.title = element_text(colour = "#507d2a", face= "bold"),
+        legend.text = element_text(colour = "#507d2a"),
+        legend.title = element_text(colour = "#507d2a", face = "bold"),
+        plot.title = element_text(colour = "#507d2a", face = "bold"),
+        plot.subtitle = element_text(colour = "#507d2a"))
+
+```
+
+The third plot depicts the relationship between a country's malnourishment percentage, represented as a portion of the total population, and its unemployment rate as a percentage of the total workforce. On the x-axis, we have the log-transformed variable unemployment rate as a log(percentage of the total workforce). On the y-axis, we have the log-transformed malnourishment percentage variable, represented as a log(percentage of the total population). These successive log transformations were executed to help clarify the relationship between the two variables. With the aid of a geom_smooth function, we can see a non-linear trend between the two variables mentioned earlier. Initially, their relationship is approximately stagnant when the unemployment rate is below 1 %. As the unemployment percentage values progress positively, there is a  fall in the malnourishment rate, then a rise back to the initial stagnant value followed by a general decline. While difficult, it can be gathered that a country's malnourishment percentage correlates positively with its unemployment rate between 10 - 21%. Conversely, the malnourishment percentage and the unemployment rate experienced a negative correlation when the unemployment rate rose between 1- 8% and 22% - 32%.
+
+```{r}
+
+final_dataset %>%
+  # map unemployment rate to malnourishment percentage 
+  ggplot(aes(unemploy_rate,malnourish_perc, color = ..x..)) +
+  scale_x_log10() + # scale x-axis using log transform
+  scale_y_log10() + # scale y-axis using log transform
+  geom_point() +
+  geom_smooth(colour = "purple") + # color geom_smooth line
+  # add labs 
+  labs(title = "Malnourishment Percentage vs. Unemployment Rate",
+       subtitle = " (% of the Population vs. % Total Workforce)",
+       x = "Log(Unemployment Rate (%) Total Working Population)",
+       y = " Log(Malnourishment Rate (% of Total Population))",
+       color = "Life Expectancy &
+Malnourishment Rate
+  Log(Low - High)") +
+  # add gradient color and stylings
+    scale_color_gradient(low = "white", high = "orange") +
+    theme_dark() +
+    theme(plot.background=element_rect(fill="#ffffd8"),
+        legend.background = element_rect(colour="#ffb327",fill="white", 
+                                         size=.5, linetype="solid"),
+        axis.text = element_text(colour = "#b37400", face= "bold"),
+        axis.title = element_text(colour = "#b37400", face= "bold"),
+        legend.text = element_text(colour = "#b37400"),
+        legend.title = element_text(colour = "#b37400", face = "bold", size = 9),
+        plot.title = element_text(colour = "#b37400", face = "bold"),
+        plot.subtitle = element_text(colour = "#b37400"))
+```
+
+The fourth plot depicts a relationship between life expectancy measured in years and a country's Gross National Expenditure (GNE). On the x-axis, we have a log-transformed life expectancy variable represented in log(years). On the y-axis, the variable GNE is represented in units corresponding to a country's percentage of its GDP. The log transform was applied to the x-axis to clarify the previous relationship between the two variables. Using the geom_smooth function, it is clear there is nonlinearity in the relationship between a country's GNE and its life expectancy. The approximately linear relationship reveals a negative correlation between the two. That is to say, as a country's life expectancy tended to increase, the country's GNE tended to decrease.\
+
+```{r}
+
+final_dataset %>%
+  # map GNE and life expectancy to one another 
+  ggplot(aes(gne, life_expectancy, color = ..x..)) +
+  geom_point( size = 2) +
+  scale_x_log10() + # scale x-axis using log trasnform 
+  geom_smooth(color = "green") + #color geom_smooth line
+  # add gradient color
+  scale_color_gradient(low = "light green", high = "purple") +
+  # add labs
+   labs(title = "Life Expectancy vs. Gross National Expenditure (GNE)",
+       subtitle = "(% of the Population vs. % of Total GDP)",
+       x = "Log(Life Expectancy (%) of Population)",
+       y = "Gross National Expenditure (% of Total GDP)",
+       color = "GNE") +
+  # add color and stylings 
+  theme_dark() +
+  theme(plot.background=element_rect(fill="#f1edf2"),
+        legend.background = element_rect(colour="green",fill="white", 
+                                         size=.5, linetype="solid"),
+        axis.text = element_text(colour = "#507d2a", face = "bold"),
+        axis.title = element_text(colour = "#507d2a", face= "bold"),
+        legend.text = element_text(colour = "#507d2a"),
+        legend.title = element_text(colour = "#507d2a", face = "bold", size = 9),
+        plot.title = element_text(colour = "#507d2a", face = "bold"),
+        plot.subtitle = element_text(colour = "#507d2a"))
+
+```
+
+The fifth plot depicts the relationship between a country's life expectancy measured in years and the malnourishment rate measured as a percentage of the total population from 2001-2019. Again, a log transform was applied to the x-axis to make the relationship between the two variables mentioned previously more apparent. On the y-axis, the malnourishment rate variable represents a percentage of the total population. On the x-axis, we have the log-transformed variable life expectancy represented in log(years). The following relationship can be seen: The malnourishment rate negatively correlates to the year variable and the life expectancy log(years). This means that the malnourishment rate tended to decrease as the years and life expectancy increased.
+
+```{r}
+
+final_dataset %>%
+  # map the variables life expectancy, malnourish perc and year
+  ggplot(aes(life_expectancy,malnourish_perc, color = year)) +
+  geom_point(stat = "identity") +
+  scale_x_log10() + # scale x-axis using log transform
+  geom_smooth(colour = "light blue") + # set geom_smooth color
+  # include labs
+  labs(title = "Life Expectancy vs. Malnourishment Percentage ",
+       subtitle = " (Years vs. % of the Population)",
+       x = "Log(Life Expectancy (Years))",
+       y = "Malnourishment Rate (% of Total Population)",
+       color = "Year") +
+  # add gradient color and stylings
+    scale_color_gradient(low = "white", high = "orange") +
+    theme_dark() +
+    theme(plot.background=element_rect(fill="#ffffd8"),
+        legend.background = element_rect(colour="#ffb327",fill="white", 
+                                         size=.5, linetype="solid"),
+        axis.text = element_text(colour = "#b37400", face= "bold"),
+        axis.title = element_text(colour = "#b37400", face= "bold"),
+        legend.text = element_text(colour = "#b37400"),
+        legend.title = element_text(colour = "#b37400", face = "bold", size = 9),
+        plot.title = element_text(colour = "#b37400", face = "bold"),
+        plot.subtitle = element_text(colour = "#b37400"))
+
+  facet_wrap(~year)
+
+```
+
+The sixth paragraph depicts the relationship between the unemployment rate (% of the total workforce) and the malnourishment percentage (% of the total population ) in 2019. Again, the x and y axes have been scaled to the following sequences: 0 - 50 and 40 - 100, respectively, with breaks every five values. On the x-axis, we have the malnourishment percentage, and on the y-axis is the life expectancy reported in years. From the visualization, it is clear that in the year 2019, the two variables mentioned above are negatively correlated. Suggesting that in 2019 as a country's malnourishment percentage increased, its life expectancy tended to decrease.
+
+```{r}
+final_dataset %>%
+  # only include 2019 year data
+  filter(year == 2019) %>%
+  # map malnourishment_perc vs. life_expectancy and year = 2019
+  ggplot(aes(x = malnourish_perc, y = life_expectancy, color = unemploy_rate)) +
+  # adjust point size
+  geom_point(size = 5) +
+  # include labs
+  labs(title = "Relationship between life expectancy, 
+       unemployment rate, and malnourishment percentage in 2019",
+       color = "Unemployment Rate vs. 
+       Percentage of Total Labor Force",
+       x = "Malnourishment Percentage 
+       (% of the Total Population)",
+       y = "Life Expectancy (Years)") +
+  # scale x & y -axis
+  scale_x_continuous(breaks = seq(0,50,5)) +
+  scale_y_continuous(breaks = seq(40,100,5))
+```
+
+## Acknowledgements:
+
+### Team Contributions:
+
+-   Jordan Toler: Full Effort
+
+-   Tim Giang: Full Effort
+
+-   Elizabeth Lam: Full Effort
+
+## Citations:
+
+Style: MLA9
+
+> "Dictionary.net." *Dictionary.net \| Find Definitions and Meanings of Words*, <https://www.dictionary.net/.>
+
+> Roser, Max, et al. "Life Expectancy." *Our World in Data*, 23 May 2013, <https://ourworldindata.org/life-expectancy.>
+
+> "World Development Indicators." *DataBank*, 16 Sept. 2022, <https://databank.worldbank.org/source/world-development-indicators.>
+
+\>\> The World Development Indicators database was used to manually create the customized datasets that made our project possible.
