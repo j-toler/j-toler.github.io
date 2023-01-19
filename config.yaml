@@ -8,14 +8,14 @@ permalinks:
   post: /post/:year/:month/:day/:slug
 params:
   about: I love all things computer science and maths.
-  author: Chris Turner
+  author: Jordan Toler
   avatar: profile.png
   custom_css: []
   custom_js: []
-  occupation: Software Engineer
+  occupation: Prospective UI/UX designer
   social:
-    Email: email@example.com
-    Github: username
+    Email: jordan_toler@icloud.com
+    Github: j-toler
     LinkedIn: username
     Twitter: username
 menu:
